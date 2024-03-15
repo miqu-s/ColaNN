@@ -54,7 +54,7 @@ dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 num_epochs = epochs
 inference_interval = 1
-device = torch.device("dml" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 img_model.to(device)
 
 for epoch in range(num_epochs):
