@@ -4,8 +4,12 @@ import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
+import PIL
 import os
 from model import ImgModel
+
+reso = 512
+epochs = 100
 
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir):
@@ -25,6 +29,9 @@ class CustomDataset(torch.utils.data.Dataset):
 
         color_img = Image.open(color_img_path).convert("RGB")
         depth_img = Image.open(depth_img_path).convert("RGB")
+        color_img = color_img.resize((reso, reso), PIL.Image.Resampling.LANCZOS)
+        depth_img = depth_img.resize((reso, reso), PIL.Image.Resampling.LANCZOS)
+
 
         color_img = self.transform(color_img)
         depth_img = self.transform(depth_img)
@@ -35,7 +42,7 @@ color_channels = 3
 depth_channels = 3
 cnn_channels = [64, 128, 256, 512, 1024, 2048, 4096]
 
-img_model = ImgModel(img_size=248, cnn_channels=cnn_channels, color_channels=color_channels, depth_channels=depth_channels)
+img_model = ImgModel(img_size=reso, cnn_channels=cnn_channels, color_channels=color_channels, depth_channels=depth_channels)
 
 criterion = nn.MSELoss()
 optimizer = optim.Adam(img_model.parameters(), lr=1e-2)
@@ -45,7 +52,7 @@ dataset_path = 'dataset/'
 dataset = CustomDataset(root_dir=dataset_path)
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-num_epochs = 50
+num_epochs = epochs
 inference_interval = 1
 device = torch.device("dml" if torch.cuda.is_available() else "cpu")
 img_model.to(device)
@@ -67,6 +74,9 @@ for epoch in range(num_epochs):
     if (epoch + 1) % inference_interval == 0:
         input_color = Image.open(os.path.join(dataset_path, 'color/cube_color.png')).convert("RGB")
         input_depth = Image.open(os.path.join(dataset_path, 'depth/cube_depth.png')).convert("RGB")
+        input_color = input_color.resize((reso, reso), PIL.Image.Resampling.LANCZOS)
+        input_depth = input_depth.resize((reso, reso), PIL.Image.Resampling.LANCZOS)
+
 
         input_color = transforms.ToTensor()(input_color).unsqueeze(0).to(device)
         input_depth = transforms.ToTensor()(input_depth).unsqueeze(0).to(device)
