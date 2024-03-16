@@ -36,7 +36,7 @@ class ImgModel(nn.Module):
             nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         )
         self.output_layer = nn.Conv2d(cnn_channels[0], 3, kernel_size=3, padding=1)
-        
+
         self.dropout = nn.Dropout2d(p=0.5)
 
     def forward(self, color_input, depth_input):
